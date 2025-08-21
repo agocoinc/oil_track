@@ -26,7 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->api(append: [
-            'auth:sanctum',
+            // 'auth:sanctum',
             'token.expiry',
 
             // 'throttle:api',
