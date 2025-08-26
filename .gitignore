@@ -22,3 +22,6 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+/instantclient-basic-linux.x64-21.19.0.0.0dbru.zip
+/instantclient-sdk-linux.x64-21.19.0.0.0dbru.zip
+/public/oci_test.php
