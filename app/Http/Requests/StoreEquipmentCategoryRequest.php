@@ -24,8 +24,8 @@ class StoreEquipmentCategoryRequest extends FormRequest
     public function rules()
     {
         return [
-            'aname' => ['required', 'string', 'max:300', 'regex:/^[\p{Arabic} ]+$/u'],
-            'lname' => ['required', 'string', 'max:300', 'regex:/^[a-zA-Z\s]+$/'],
+            'aname' => ['required', 'string', 'max:300', 'regex:/^[\p{Arabic}0-9\x{0660}-\x{0669}\s\p{P}\p{S}]+$/u'],
+            'lname' => ['required', 'string', 'max:300', 'regex:/^[a-zA-Z0-9\s\p{P}\p{S}]+$/u'],
             'note'  => 'nullable|string|max:300',
         ];
     }

@@ -23,10 +23,10 @@ class StoreEquipmentDetailsRequest extends FormRequest
     public function rules()
     {
         return [
-            'equipment_category_id'       => 'required|exists:equipment_categories,equipment_category_id',
+            'equipment_category_id'       => 'required|exists:equipment_categories,id',
             'loc_name'       => 'nullable|string|max:150',
-            'details_aname'  => ['required', 'string', 'max:300', 'regex:/^[\p{Arabic}\s]+$/u'],
-            'details_lname'  => ['required', 'string', 'max:300', 'regex:/^[a-zA-Z\s]+$/'],
+            'details_aname'  => ['required', 'string', 'max:300', 'regex:/^[\p{Arabic}0-9\x{0660}-\x{0669}\s\p{P}\p{S}]+$/u'],
+            'details_lname'  => ['required', 'string', 'max:300', 'regex:/^[a-zA-Z0-9\s\p{P}\p{S}]+$/u'],
             'details_qty'    => 'nullable|integer|min:0',
             'date_from'      => 'nullable|date',
             'date_to'        => 'nullable|date|after_or_equal:equip_date_from',

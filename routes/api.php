@@ -11,7 +11,11 @@ Route::get('/', function () {
     ]);
 });
 
+Route::middleware(['auth:sanctum'])->get('/me', function (Request $request) {
+    return response()->json($request->user());
+});
+
 require __DIR__.'/settings.php';
-require __DIR__.'/auth.php';
+
 require __DIR__.'/equipment_category.php';
 require __DIR__.'/equipment_details.php';

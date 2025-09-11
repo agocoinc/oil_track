@@ -61,46 +61,74 @@ use Illuminate\Support\Facades\Route;
 // });
 
 
+// Route::post('/login', function (Request $request) {
+//     $credentials = $request->validate([
+//         'email' => ['required', 'email'],
+//         'password' => ['required'],
+//     ]);
+
+//     if (!Auth::attempt($credentials)) {
+//         return response()->json(['message' => 'بيانات الدخول غير صحيحة'], 401);
+//     }
+
+//     $user = Auth::user();
+
+//     $token = $user->createToken('api-token')->plainTextToken;
+
+//     $accessToken = $user->tokens()->latest()->first();
+//     $accessToken->expires_at = Carbon::now()->addHours(12); // 2-hour expiry
+//     $accessToken->save();
+
+//     return response()->json([
+//         'message' => 'تم تسجيل الدخول بنجاح',
+//         'token' => $token,
+//         'expires_at' => $accessToken->expires_at
+//     ]);
+// })->name('login');
+
+// Route::post('/logout', function (Request $request) {
+//     /** @var \Laravel\Sanctum\PersonalAccessToken|null $token */
+//     $token = $request->user()->currentAccessToken();
+//     if ($token) {
+//         $token->delete();
+//     }
+
+//     return response()->json([
+//         'message' => 'تم تسجيل الخروج بنجاح'
+//     ]);
+// })->middleware('auth:sanctum');
+
+
 Route::post('/login', function (Request $request) {
     $credentials = $request->validate([
         'email' => ['required', 'email'],
-        'password' => ['required'],
+        'password' => ['required']
     ]);
 
-    if (!Auth::attempt($credentials)) {
+    if(!Auth::attempt($credentials)) {
         return response()->json(['message' => 'بيانات الدخول غير صحيحة'], 401);
     }
 
-    $user = Auth::user();
-
-    $token = $user->createToken('api-token')->plainTextToken;
-
-    $accessToken = $user->tokens()->latest()->first();
-    $accessToken->expires_at = Carbon::now()->addHours(12); // 2-hour expiry
-    $accessToken->save();
+    $request->session()->regenerate();
 
     return response()->json([
-        'message' => 'تم تسجيل الدخول بنجاح',
-        'token' => $token,
-        'expires_at' => $accessToken->expires_at
+        'message' => 'تم التسجيل الدخول',
+        'user' => Auth::user(),
     ]);
-})->name('login');
+});
 
 Route::post('/logout', function (Request $request) {
-    /** @var \Laravel\Sanctum\PersonalAccessToken|null $token */
-    $token = $request->user()->currentAccessToken();
-    if ($token) {
-        $token->delete();
-    }
+    Auth::guard('web')->logout();
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
 
     return response()->json([
-        'message' => 'تم تسجيل الخروج بنجاح'
+        'message' => 'تم التسجيل الخروج'
     ]);
-})->middleware('auth:sanctum');
-
-
-Route::middleware(['auth:sanctum', 'token.expiry'])->get('/me', function (Request $request) {
-    return response()->json($request->user());
 });
+
+
+
+
 
 

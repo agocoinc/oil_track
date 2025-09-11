@@ -19,6 +19,6 @@ class EquipmentDetails extends Model
 
     public function category()
     {
-        return $this->belongsTo(EquipmentCategory::class);
+        return $this->belongsTo(EquipmentCategory::class, 'equipment_category_id', 'id');
     }
 }
