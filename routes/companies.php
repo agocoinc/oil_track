@@ -6,11 +6,11 @@ use Illuminate\Support\Facades\Route;
 
 
 Route::middleware(['auth:sanctum', 'role.admin'])->group(function () {
-    Route::get('/companies', [CompanyController::class, 'index'])->name('companies');
-    Route::get('/companies/{company}/structure', [CompanyController::class, 'getStructureByCompanyId'])
+    Route::get('/a/companies', [CompanyController::class, 'index'])->name('companies');
+    Route::get('/a/companies/{company}/structure', [CompanyController::class, 'getStructureByCompanyId'])
         ->name('companies.structure.get');
 
-    Route::post('/companies/{company}/structure', [CompanyController::class, 'storeStructure'])
+    Route::post('/a/companies/{company}/structure', [CompanyController::class, 'storeStructure'])
         ->name('companies.structure.store');
 });
 
