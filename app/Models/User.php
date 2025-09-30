@@ -23,7 +23,8 @@ class User extends Authenticatable
         'company_id',
         'name',
         'email',
-        'password',
+        'role',
+        'password',  
     ];
 
     /**
@@ -49,8 +50,21 @@ class User extends Authenticatable
         ];
     }
 
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isNormalUser(): bool
+    {
+        return $this->role === 'user';
+    }
+
+
     public function company()
     {
         return $this->belongsTo(Company::class);
     }
+
+
 }

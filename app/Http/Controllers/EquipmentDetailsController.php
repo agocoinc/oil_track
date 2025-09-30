@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreEquipmentDetailsRequest;
 use App\Models\EquipmentCategory;
 use App\Models\EquipmentDetails;
+use App\Models\Company;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
@@ -13,7 +14,7 @@ class EquipmentDetailsController extends Controller
 {
     public function index(EquipmentCategory $category)
     {
-        if ($category->company->id != Auth::user()->company_id) {
+        if (Auth::user()->role != 'admin' && $category->company->id != Auth::user()->company_id) {
             return response()->json([
                 'status' => false,
                 'message' => 'لم يتم العثور على التفصيل'
@@ -30,7 +31,7 @@ class EquipmentDetailsController extends Controller
 
     public function show(EquipmentDetails $detail)
     {
-        if ($detail->category->company->id != Auth::user()->company_id) {
+        if (Auth::user()->role != 'admin' && $detail->category->company->id != Auth::user()->company_id) {
             return response()->json([
                 'status' => false,
                 'message' => 'لم يتم العثور على التفصيل'
@@ -134,10 +135,9 @@ class EquipmentDetailsController extends Controller
                     return $dateTo->lt($today) || $dateTo->between($today, $in30Days);
                 });
     
-            // Add each urgent item with category info to $items array
             foreach ($urgentItems as $item) {
                 $dateTo = Carbon::parse($item->date_to);
-                $remainingDays = $today->diffInDays($dateTo, false);
+                $remainingDays = $dateTo->diffInDays($today, false);
     
                 $items[] = [
                     'category_id' => $category->id,
@@ -145,20 +145,17 @@ class EquipmentDetailsController extends Controller
                     'status' => $dateTo->lt($today) ? 'expired' : 'expiring_soon',
                     'details_aname' => $item->details_aname,
                     'remaining_days' => $remainingDays,
-                    'date_to' => $dateTo,  // useful for sorting
+                    'date_to' => $dateTo,
                 ];
             }
         }
     
-        // Sort all urgent items by date_to ascending
         usort($items, function ($a, $b) {
             return $a['date_to']->timestamp <=> $b['date_to']->timestamp;
         });
     
-        // Limit to first 10
         $items = array_slice($items, 0, 10);
     
-        // Remove date_to from final output if not needed
         $items = array_map(function($item) {
             unset($item['date_to']);
             return $item;
@@ -174,6 +171,86 @@ class EquipmentDetailsController extends Controller
             ]
         ]);
     }
+
+
+    public function statsForAdmin()
+    {
+        $companies = Company::with(['equipmentCategories.equipmentDetails'])->get();
+
+        if ($companies->isEmpty()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'لا توجد شركات في النظام',
+                'data' => null,
+            ], 404);
+        }
+
+        $today = Carbon::today();
+        $in30Days = Carbon::today()->addDays(30);
+
+        $items = [];
+        $totalCategories = 0;
+        $totalDetails = 0;
+
+        foreach ($companies as $company) {
+            $totalCategories += $company->equipmentCategories->count();
+
+            foreach ($company->equipmentCategories as $category) {
+                $totalDetails += $category->equipmentDetails->count();
+
+                $urgentItems = $category->equipmentDetails
+                    ->filter(function ($item) use ($today, $in30Days) {
+                        if (!$item->date_to) return false;
+
+                        $dateTo = Carbon::parse($item->date_to);
+
+                        return $dateTo->lt($today) || $dateTo->between($today, $in30Days);
+                    });
+
+                foreach ($urgentItems as $item) {
+                    $dateTo = Carbon::parse($item->date_to);
+                    $remainingDays = $dateTo->diffInDays($today, false);
+
+                    $items[] = [
+                        'company_id' => $company->id,
+                        'company_name' => $company->name, // assuming 'name' field exists
+                        'category_id' => $category->id,
+                        'category_name' => $category->aname,
+                        'status' => $dateTo->lt($today) ? 'expired' : 'expiring_soon',
+                        'details_aname' => $item->details_aname,
+                        'remaining_days' => $remainingDays,
+                        'date_to' => $dateTo,  // useful for sorting
+                    ];
+                }
+            }
+        }
+
+        // Sort urgent items by date_to ascending
+        usort($items, function ($a, $b) {
+            return $a['date_to']->timestamp <=> $b['date_to']->timestamp;
+        });
+
+        // Limit to first 10
+        $items = array_slice($items, 0, 10);
+
+        // Remove date_to from output
+        $items = array_map(function ($item) {
+            unset($item['date_to']);
+            return $item;
+        }, $items);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'تم جلب الإحصائيات لجميع الشركات بنجاح',
+            'data' => [
+                'expiring_items' => $items,
+                'companies_count' => $companies->count(),
+                'categories_count' => $totalCategories,
+                'details_count' => $totalDetails,
+            ],
+        ]);
+    }
+
     
     
 

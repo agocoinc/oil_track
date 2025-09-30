@@ -21,10 +21,33 @@ class EquipmentCategoryController extends Controller
         ]);
     }
 
+   public function getAll()
+    {
+        $categories = EquipmentCategory::with('company')->get();
+
+        $transformed = $categories->map(function ($category) {
+            $categoryArray = $category->toArray();
+
+            unset($categoryArray['company']);
+
+            return array_merge($categoryArray, [
+                'company' => $category->company->aname ?? null,
+            ]);
+        });
+
+        return response()->json([
+            'status' => true,
+            'message' => 'تم جلب جميع التصنيفات بنجاح',
+            'data' => $transformed,
+        ]);
+    }
+
+
     public function show(EquipmentCategory $category)
     {
         $user = Auth::user();
-        if($category->company_id != $user->company->id) {
+
+        if($user->role != 'admin' && $category->company_id != $user->company->id) {
             return response()->json([
                 'status' => false,
                 'message' => 'لم يتم العثور على التصنيف'

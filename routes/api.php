@@ -19,3 +19,4 @@ require __DIR__.'/settings.php';
 
 require __DIR__.'/equipment_category.php';
 require __DIR__.'/equipment_details.php';
+require __DIR__.'/companies.php';
